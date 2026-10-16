@@ -12,6 +12,13 @@ import { parseDate } from '@/utils/parse-date';
 //     对 restofworld.org 触发 CF 403；容器内 node/tsx 独立进程不经 patch 所以直测 200。
 //     修复：显式 import undici 原生 fetch（undiciFetch），绕开全局 patch。
 //  3) 走原生 fetch 自动跟随重定向，手动传浏览器 UA。
+//  4) 2026-10-16 修 503：源站 XML 的 <img> src 里图片 URL 带未转义的 &（?width=380&dpr=2&crop=16:9，
+//    24 处），fast-xml-parser 严格解析抛 "Invalid character in entity name" → 整条路由 503。
+//    解析前先转义裸 &，合法实体（&amp; / &#160; / &#x1F;）原样保留。
+
+// 转义未转义的 &：后面不跟「合法实体名 + ;」的 & 一律换成 &amp;
+// 合法实体形式：&amp; &lt; &#160; &#x1F; —— 即 &#[0-9]+; / &#x[0-9a-fA-F]+; / &[a-zA-Z][a-zA-Z0-9]*;
+const escapeBareAmp = (xml: string) => xml.replace(/&(?!(#[0-9]+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);)/g, '&amp;');
 
 const parser = new Parser({
     headers: {
@@ -50,7 +57,7 @@ export const route: Route = {
         if (!resp.ok) {
             throw new Error(`restofworld fetch ${resp.status}`);
         }
-        const xml = await resp.text();
+        const xml = escapeBareAmp(await resp.text());
         const feed = await parser.parseString(xml);
 
         const items = (feed.items || []).slice(0, limit).map((item) => ({
