@@ -8,7 +8,7 @@ import { parseDate } from '@/utils/parse-date';
 // 示例: /cdp/rss/https%3A%2F%2Fwww.theguardian.com%2Fworld%2Frss
 
 const parser = new Parser({
-    timeout: 20000,
+    timeout: 45000,
     headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
     },

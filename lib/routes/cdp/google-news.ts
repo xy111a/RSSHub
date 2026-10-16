@@ -32,8 +32,10 @@ const REGIONS: Record<string, { hl: string; gl: string; ceid: string }> = {
     SG: { hl: 'en-SG', gl: 'SG', ceid: 'SG:en' },
 };
 
+// timeout 2026-10-16 由 20s 提到 45s：Google News RSS 对部分区域/查询响应超过 20s，
+// 触发 rss-parser 的 "Request timed out after 20000ms" 导致 5 个区域订阅间歇 503。
 const parser = new Parser({
-    timeout: 20000,
+    timeout: 45000,
     headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
     },
